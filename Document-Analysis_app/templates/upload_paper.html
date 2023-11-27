@@ -1,0 +1,70 @@
+<!-- chatgpt_app/templates/upload_paper.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatGPT - Upload Paper</title>
+</head>
+<body>
+    <h1>Upload Paper</h1>
+    
+    <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'upload_paper' %}">
+        {% csrf_token %}
+        <label for="document">Upload Research Paper:</label>
+        <input type="file" name="document" required>
+        
+        <br>
+        
+        <label for="question">Ask a Question:</label>
+        <input type="text" name="question" required>
+        
+        <br>
+        
+        <input type="submit" value="Submit">
+    </form>
+    
+    {% comment %} <h2>Uploaded Papers</h2>
+    <ul>
+        {% for paper in papers %}
+            <li>{{ paper.document.name }} - Uploaded on {{ paper.uploaded_at }}</li>
+        {% endfor %}
+    </ul> {% endcomment %}
+
+    <h2>Answer</h2>
+    <div id="answerContainer"></div>
+
+    <!-- Add this script block at the end of your HTML file, before </body> -->
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Fetch API to submit the form data
+            fetch(this.action, {
+                method: this.method,
+                body: new FormData(this),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Form submitted successfully!');
+                console.log('Response:', data);
+
+                // Check if the 'answer' key is present in the response
+                if ('answer' in data) {
+                    // Decode the answer from its binary representation
+                    const decoder = new TextDecoder('utf-8');
+                    const decodedAnswer = decoder.decode(new Uint8Array(data.answer.data));
+                    
+                    // Display the decoded answer in the answerContainer
+                    document.getElementById('answerContainer').innerHTML = `<p>Answer: ${decodedAnswer}</p>`;
+                } else {
+                    console.error('Error: Unable to extract answer from the response.');
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting form:', error);
+            });
+        });
+    </script>
+
+</body>
+</html>
